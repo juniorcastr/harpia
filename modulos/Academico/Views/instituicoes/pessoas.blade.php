@@ -50,13 +50,16 @@
                             <td>{{$pessoa->pes_id}}</td>
                             <td>{{$pessoa->pes_nome}}</td>
                             <td>
-
                                 @if($pessoa->aluno)
                                     <span class="label label-success">Aluno</span>
                                 @endif
                                 @if($pessoa->usuario)
-                                    <span class="label label-success">Usuário</span>
-                                @endif
+                                        @if($pessoa->usuario && !$pessoa->aluno && !$pessoa->professor && !$pessoa->tutor)
+                                            <span class="label label-primary">Gestor</span>
+                                        @else
+                                            <span class="label label-success">Usuário</span>
+                                        @endif
+                                    @endif
                                 @if($pessoa->professor)
                                     <span class="label label-success">Professor</span>
                                 @endif
