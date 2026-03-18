@@ -29,7 +29,7 @@
                     <select name="cfn_set_id" class="form-control">
     <option value="">Selecione o setor</option>
     @foreach($setores as $key => $value)
-        <option value="{{ $key }}" {{ [] == $key ? 'selected' : '' }}>{{ $value }}</option>
+        <option value="{{ $key }}" {{ old('cfn_set_id') == $key ? 'selected' : '' }}>{{ $value }}</option>
     @endforeach
 </select>
                     @if ($errors->has('cfn_set_id')) <p style="color: red" class="help-block">{{ $errors->first('cfn_set_id') }}</p> @endif
@@ -39,7 +39,7 @@
                     <select name="cfn_fun_id" class="form-control">
     <option value="">Selecione a função</option>
     @foreach($funcoes as $key => $value)
-        <option value="{{ $key }}" {{ [] == $key ? 'selected' : '' }}>{{ $value }}</option>
+        <option value="{{ $key }}" {{ old('cfn_fun_id') == $key ? 'selected' : '' }}>{{ $value }}</option>
     @endforeach
 </select>
                     @if ($errors->has('cfn_fun_id')) <p style="color: red"  class="help-block">{{ $errors->first('cfn_fun_id') }}</p> @endif

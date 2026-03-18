@@ -15,7 +15,7 @@
                 <span class="label label-success pull-right">Colaborador</span>
         </div>
         <div class="box-body">
-            <form action="url(" method="POST" id="form" role="form">
+            <form action="{{ route('rh.colaboradores.create') }}" method="POST" id="form" role="form">
     @csrf
 
             <h4 class="box-title">

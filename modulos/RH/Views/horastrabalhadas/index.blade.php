@@ -112,6 +112,7 @@
                 <div class="row" style="align-items: right">
                     <div class="col-md-2" style="float: right;">
                         <form id="exportPdf" target="_blank" method="post" action="{{{ route('rh.horastrabalhadasdiarias.pdf') }}}">
+                            @csrf
                             {!! ActionButton::grid([
                                     'type' => 'LINE',
                                     'buttons' => [

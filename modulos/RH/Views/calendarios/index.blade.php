@@ -24,6 +24,7 @@
                 <div>
                     <div class="widget-body" style="padding: 10px">
                         <form id="formEvent" action="javascript:func()" method="post">
+                            @csrf
                             <input type="hidden" id="cld_id" name="cld_id" value="">
                             <fieldset>
                                 <div class="form-group">

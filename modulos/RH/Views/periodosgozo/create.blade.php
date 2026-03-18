@@ -10,17 +10,17 @@
 @endsection
 
 @section('title')
-    Períodos Aquisitivos
+    Férias
 @stop
 
 @section('subtitle')
-    Cadastro Períodos Aquisitivos
+    Cadastro de Férias
 @stop
 
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Formulário de cadastro de Período Aquisitivo</h3>
+            <h3 class="box-title">Formulário de cadastro de Férias</h3>
         </div>
         <div class="box-body">
             <form action="{{ route('rh.colaboradores.periodosgozo.create', [$colaborador->col_id]) }}" method="POST" id="form" role="form">

@@ -45,7 +45,7 @@
                         <select name="cfn_set_id" class="form-control">
     <option value="">Selecione o setor</option>
     @foreach($setores as $key => $value)
-        <option value="{{ $key }}" {{ [] == $key ? 'selected' : '' }}>{{ $value }}</option>
+        <option value="{{ $key }}" {{ Request::input('cfn_set_id') == $key ? 'selected' : '' }}>{{ $value }}</option>
     @endforeach
 </select>
                     </div>
@@ -53,7 +53,7 @@
                     <div class="form-group col-md-2">
                         <select name="funcoes[]" class="form-control" multiple="multiple">
     @foreach($funcoes as $key => $value)
-        <option value="{{ $key }}" {{ old('funcoes[]') == $key ? 'selected' : '' }}>{{ $value }}</option>
+        <option value="{{ $key }}" {{ in_array($key, (array) Request::input('funcoes', [])) ? 'selected' : '' }}>{{ $value }}</option>
     @endforeach
 </select>
                         @if ($errors->has('funcoes')) <p class="help-block">{{ $errors->first('funcoes') }}</p> @endif

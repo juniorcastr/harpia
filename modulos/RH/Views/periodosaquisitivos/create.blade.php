@@ -10,22 +10,22 @@
 @endsection
 
 @section('title')
-    Férias
+    Períodos Aquisitivos
 @stop
 
 @section('subtitle')
-    Cadastro de Férias
+    Cadastro de Períodos Aquisitivos
 @stop
 
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Formulário de cadastro de Férias</h3>
+            <h3 class="box-title">Formulário de cadastro de Período Aquisitivo</h3>
         </div>
         <div class="box-body">
-            <form action="{{ route('rh.colaboradores.periodosgozo.create', [$colaborador->col_id]) }}" method="POST" id="form" role="form">
+            <form action="{{ route('rh.colaboradores.periodosaquisitivos.create', [$colaborador->col_id]) }}" method="POST" id="form" role="form">
     @csrf
-            @include('RH::periodosgozo.includes.formulario')
+            @include('RH::periodosaquisitivos.includes.formulario')
             </form>
         </div>
     </div>
