@@ -16,3 +16,11 @@ codecoverage
 .php_cs.cache
 .php-cs-fixer.cache
 .phpunit.result.cache
+modulos/.codex
+modulos/.junie
+modulos/.github
+modulos/.mcp.json
+.agents
+.github
+.claude
+.ai
