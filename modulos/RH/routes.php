@@ -9,6 +9,14 @@ Route::group(['prefix' => 'api/rh'], function () {
 Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
     Route::get('/', '\Modulos\RH\Http\Controllers\IndexController@getIndex')->name('rh.index.index');
 
+    Route::group(['prefix' => 'teste-dispositivo'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\TesteDispositivoController@getIndex')->name('rh.teste-dispositivo.index');
+        Route::post('/ping', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postPing')->name('rh.teste-dispositivo.ping');
+        Route::post('/listar-usuarios', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postListarUsuarios')->name('rh.teste-dispositivo.listar-usuarios');
+        Route::post('/consultar-logs', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postConsultarLogs')->name('rh.teste-dispositivo.consultar-logs');
+        Route::post('/status-dispositivo', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postStatusDispositivo')->name('rh.teste-dispositivo.status');
+    });
+
     Route::group(['prefix' => 'areasconhecimentos'], function () {
         Route::get('/', '\Modulos\RH\Http\Controllers\AreasConhecimentosController@getIndex')->name('rh.areasconhecimentos.index');
         Route::get('/create', '\Modulos\RH\Http\Controllers\AreasConhecimentosController@getCreate')->name('rh.areasconhecimentos.create');

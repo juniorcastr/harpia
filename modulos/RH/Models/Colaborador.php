@@ -20,6 +20,7 @@ class Colaborador extends BaseModel
         'col_matricula_universidade',
         'col_observacao',
         'col_status',
+        'col_gestor_id',
     ];
 
     protected $searchable = [
@@ -73,5 +74,15 @@ class Colaborador extends BaseModel
 
         return $this->hasMany('Modulos\RH\Models\ColaboradorFuncao', 'cfn_col_id', 'col_id')
             ->where('cfn_data_fim', '<>',null);
+    }
+
+    public function gestor()
+    {
+        return $this->belongsTo('Modulos\RH\Models\Colaborador', 'col_gestor_id', 'col_id');
+    }
+
+    public function subordinados()
+    {
+        return $this->hasMany('Modulos\RH\Models\Colaborador', 'col_gestor_id', 'col_id');
     }
 }

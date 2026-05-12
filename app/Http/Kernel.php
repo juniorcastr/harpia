@@ -55,5 +55,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'vinculo' => \Modulos\Academico\Http\Middleware\Vinculo::class,
         'verificapessoa' => \Modulos\Geral\Http\Middlewares\VerificaPessoaMiddleware::class,
+        'auth.dispositivo' => \Modulos\RH\Http\Middlewares\AutenticarDispositivo::class,
     ];
 }
