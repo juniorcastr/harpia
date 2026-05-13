@@ -71,4 +71,71 @@ class ControlIdApiClientTest extends \PHPUnit\Framework\TestCase
         );
         $this->assertSame(['general' => ['name' => 'iDFace']], $response);
     }
+
+    public function testCreateUserUsesExpectedEndpointAndPayload(): void
+    {
+        $history = [];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['session' => 'crt789'])),
+            new Response(200, [], json_encode(['ids' => [12]])),
+        ]);
+        $handler = HandlerStack::create($mock);
+        $handler->push(\GuzzleHttp\Middleware::history($history));
+
+        $client = new Client(['handler' => $handler]);
+        $apiClient = new ControlIdApiClient($client);
+
+        $dispositivo = new DispositivoAcesso();
+        $dispositivo->dis_ip = '192.168.0.10';
+
+        $response = $apiClient->createUser($dispositivo, [
+            'registration' => '15',
+            'name' => 'Maria Silva',
+            'password' => '',
+            'user_type_id' => 1,
+        ]);
+
+        $this->assertCount(2, $history);
+        $this->assertSame('/create_objects.fcgi', $history[1]['request']->getUri()->getPath());
+        $this->assertSame('session=crt789', $history[1]['request']->getUri()->getQuery());
+        $this->assertJsonStringEqualsJsonString(
+            json_encode([
+                'object' => 'users',
+                'values' => [
+                    'registration' => '15',
+                    'name' => 'Maria Silva',
+                    'password' => '',
+                    'user_type_id' => 1,
+                ],
+            ]),
+            (string) $history[1]['request']->getBody()
+        );
+        $this->assertSame(['ids' => [12]], $response);
+    }
+
+    public function testGetUserImageUsesGetRequestWithSession(): void
+    {
+        $history = [];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['session' => 'img321'])),
+            new Response(200, [], 'raw-image-content'),
+        ]);
+        $handler = HandlerStack::create($mock);
+        $handler->push(\GuzzleHttp\Middleware::history($history));
+
+        $client = new Client(['handler' => $handler]);
+        $apiClient = new ControlIdApiClient($client);
+
+        $dispositivo = new DispositivoAcesso();
+        $dispositivo->dis_ip = '192.168.0.10';
+
+        $response = $apiClient->getUserImage($dispositivo, 99);
+
+        $this->assertCount(2, $history);
+        $this->assertSame('GET', $history[1]['request']->getMethod());
+        $this->assertSame('/user_get_image.fcgi', $history[1]['request']->getUri()->getPath());
+        $this->assertStringContainsString('user_id=99', $history[1]['request']->getUri()->getQuery());
+        $this->assertStringContainsString('session=img321', $history[1]['request']->getUri()->getQuery());
+        $this->assertSame('raw-image-content', $response);
+    }
 }

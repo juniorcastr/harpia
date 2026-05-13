@@ -11,4 +11,20 @@ class DispositivoAcessoRepository extends BaseRepository
     {
         $this->model = $dispositivoAcesso;
     }
+
+    public function listarAtivosParaSelecao()
+    {
+        return $this->model
+            ->where('dis_status', 'ativo')
+            ->orderBy('dis_nome')
+            ->pluck('dis_nome', 'dis_id');
+    }
+
+    public function buscarAtivo(int $dispositivoId): ?DispositivoAcesso
+    {
+        return $this->model
+            ->where('dis_id', $dispositivoId)
+            ->where('dis_status', 'ativo')
+            ->first();
+    }
 }

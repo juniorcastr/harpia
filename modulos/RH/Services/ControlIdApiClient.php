@@ -48,6 +48,63 @@ class ControlIdApiClient
         return $this->post($dispositivo, '/get_configuration.fcgi', []);
     }
 
+    public function createUser(DispositivoAcesso $dispositivo, array $userData): array
+    {
+        return $this->post($dispositivo, '/create_objects.fcgi', [
+            'object' => 'users',
+            'values' => $userData,
+        ]);
+    }
+
+    public function modifyUser(DispositivoAcesso $dispositivo, int $userId, array $userData): array
+    {
+        return $this->post($dispositivo, '/modify_objects.fcgi', [
+            'object' => 'users',
+            'values' => array_merge($userData, [
+                'id' => $userId,
+            ]),
+        ]);
+    }
+
+    public function destroyUser(DispositivoAcesso $dispositivo, int $userId): array
+    {
+        return $this->post($dispositivo, '/destroy_objects.fcgi', [
+            'object' => 'users',
+            'values' => [
+                'id' => $userId,
+            ],
+        ]);
+    }
+
+    public function setUserImage(DispositivoAcesso $dispositivo, int $userId, string $imageBase64): array
+    {
+        return $this->post($dispositivo, '/user_set_image.fcgi', [
+            'user_id' => $userId,
+            'image' => $imageBase64,
+        ]);
+    }
+
+    public function destroyUserImage(DispositivoAcesso $dispositivo, int $userId): array
+    {
+        return $this->post($dispositivo, '/user_destroy_image.fcgi', [
+            'user_id' => $userId,
+        ]);
+    }
+
+    public function getUserImage(DispositivoAcesso $dispositivo, int $userId): string
+    {
+        return $this->get($dispositivo, '/user_get_image.fcgi', [
+            'user_id' => $userId,
+        ]);
+    }
+
+    public function testUserImage(DispositivoAcesso $dispositivo, string $imageBase64): array
+    {
+        return $this->post($dispositivo, '/user_test_image.fcgi', [
+            'image' => $imageBase64,
+        ]);
+    }
+
     public function setConfiguration(DispositivoAcesso $dispositivo, array $config): array
     {
         return $this->post($dispositivo, '/set_configuration.fcgi', $config);
@@ -98,6 +155,18 @@ class ControlIdApiClient
         $session = $this->obterSessao($dispositivo);
 
         return $this->postSemSessao($dispositivo, $endpoint . '?session=' . urlencode($session), $payload);
+    }
+
+    private function get(DispositivoAcesso $dispositivo, string $endpoint, array $query = []): string
+    {
+        $session = $this->obterSessao($dispositivo);
+        $query = array_merge($query, ['session' => $session]);
+
+        $response = $this->http->request('GET', $this->baseUrl($dispositivo) . $endpoint, [
+            'query' => $query,
+        ]);
+
+        return (string) $response->getBody();
     }
 
     private function obterSessao(DispositivoAcesso $dispositivo): string

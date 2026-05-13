@@ -6,6 +6,21 @@ Route::group(['prefix' => 'api/rh'], function () {
     });
 });
 
+Route::group(['prefix' => 'api/rh/monitor', 'middleware' => ['auth.dispositivo']], function () {
+    Route::post('/notifications/dao', '\Modulos\RH\Http\Controllers\MonitorController@receberLogAcesso')->name('rh.api.monitor.dao');
+    Route::post('/notifications/catra_event', '\Modulos\RH\Http\Controllers\MonitorController@receberEventoCatraca')->name('rh.api.monitor.catra_event');
+    Route::post('/notifications/device_is_alive', '\Modulos\RH\Http\Controllers\MonitorController@receberHeartbeat')->name('rh.api.monitor.device_is_alive');
+    Route::post('/notifications/access_photo', '\Modulos\RH\Http\Controllers\MonitorController@receberFotoAcesso')->name('rh.api.monitor.access_photo');
+    Route::post('/notifications/door', '\Modulos\RH\Http\Controllers\MonitorController@receberEstadoPorta')->name('rh.api.monitor.door');
+    Route::post('/notifications/operation_mode', '\Modulos\RH\Http\Controllers\MonitorController@receberModoOperacao')->name('rh.api.monitor.operation_mode');
+    Route::post('/notifications/template', '\Modulos\RH\Http\Controllers\MonitorController@receberTemplate')->name('rh.api.monitor.template');
+    Route::post('/notifications/user_image', '\Modulos\RH\Http\Controllers\MonitorController@receberImagemUsuario')->name('rh.api.monitor.user_image');
+    Route::post('/notifications/card', '\Modulos\RH\Http\Controllers\MonitorController@receberCartao')->name('rh.api.monitor.card');
+    Route::post('/notifications/pin', '\Modulos\RH\Http\Controllers\MonitorController@receberPin')->name('rh.api.monitor.pin');
+    Route::post('/notifications/password', '\Modulos\RH\Http\Controllers\MonitorController@receberSenha')->name('rh.api.monitor.password');
+    Route::post('/notifications/secbox', '\Modulos\RH\Http\Controllers\MonitorController@receberSecbox')->name('rh.api.monitor.secbox');
+});
+
 Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
     Route::get('/', '\Modulos\RH\Http\Controllers\IndexController@getIndex')->name('rh.index.index');
 
@@ -15,6 +30,26 @@ Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
         Route::post('/listar-usuarios', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postListarUsuarios')->name('rh.teste-dispositivo.listar-usuarios');
         Route::post('/consultar-logs', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postConsultarLogs')->name('rh.teste-dispositivo.consultar-logs');
         Route::post('/status-dispositivo', '\Modulos\RH\Http\Controllers\TesteDispositivoController@postStatusDispositivo')->name('rh.teste-dispositivo.status');
+    });
+
+    Route::group(['prefix' => 'usuarios-dispositivo'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getIndex')->name('rh.dispositivo-usuarios.index');
+        Route::post('/create', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postCreate')->name('rh.dispositivo-usuarios.create');
+        Route::get('/edit/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getEdit')->name('rh.dispositivo-usuarios.edit');
+        Route::put('/edit/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@putEdit')->name('rh.dispositivo-usuarios.edit');
+        Route::post('/atualizar-foto/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postAtualizarFoto')->name('rh.dispositivo-usuarios.atualizar-foto');
+        Route::post('/remover-foto/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postRemoverFoto')->name('rh.dispositivo-usuarios.remover-foto');
+        Route::post('/delete', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postDelete')->name('rh.dispositivo-usuarios.delete');
+        Route::post('/sincronizar', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postSincronizar')->name('rh.dispositivo-usuarios.sincronizar');
+        Route::get('/exportar-csv/{dis_id?}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getExportarCsv')->name('rh.dispositivo-usuarios.exportar-csv');
+    });
+
+    Route::group(['prefix' => 'vincular-colaboradores'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@getIndex')->name('rh.vincular-colaboradores.index');
+        Route::post('/vincular', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@postVincular')->name('rh.vincular-colaboradores.vincular');
+        Route::post('/desvincular', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@postDesvincular')->name('rh.vincular-colaboradores.desvincular');
+        Route::post('/sincronizar', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@postSincronizar')->name('rh.vincular-colaboradores.sincronizar');
+        Route::get('/exportar-csv/{dis_id?}', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@getExportarCsv')->name('rh.vincular-colaboradores.exportar-csv');
     });
 
     Route::group(['prefix' => 'areasconhecimentos'], function () {

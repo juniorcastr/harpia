@@ -13,9 +13,12 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\ColetarEventosControlId::class,
         // Commands\Inspire::class,
+        Commands\ExportarUsuariosDispositivo::class,
         Commands\ModulosMigrate::class,
         Commands\ModulosSeed::class,
+        Commands\SincronizarMapeamentoDispositivo::class,
     ];
 
     /**
