@@ -111,6 +111,27 @@
                                 <p class="help-block">Opcional. Se enviada, a foto será cadastrada diretamente no iDFace.</p>
                                 @if ($errors->has('foto')) <p class="help-block">{{ $errors->first('foto') }}</p> @endif
                             </div>
+
+                            <div class="form-group @if($errors->has('dispositivos_destino')) has-error @endif">
+                                <label>Cadastrar também em outros aparelhos</label>
+                                <select name="dispositivos_destino[]" class="form-control" multiple>
+                                    @php($dispositivosDestino = old('dispositivos_destino', [$dispositivo->dis_id]))
+                                    @foreach($dispositivos as $dispositivoId => $dispositivoNome)
+                                        <option value="{{ $dispositivoId }}" {{ in_array((string) $dispositivoId, array_map('strval', (array) $dispositivosDestino), true) ? 'selected' : '' }}>
+                                            {{ $dispositivoNome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="help-block">Se nada for alterado, o cadastro ocorre no aparelho atualmente carregado.</p>
+                                @if ($errors->has('dispositivos_destino')) <p class="help-block">{{ $errors->first('dispositivos_destino') }}</p> @endif
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="cadastrar_em_todos_dispositivos" value="1" {{ old('cadastrar_em_todos_dispositivos') ? 'checked' : '' }}>
+                                    Cadastrar em todos os aparelhos ativos
+                                </label>
+                            </div>
                         </div>
 
                         <div class="box-footer">
@@ -137,6 +158,37 @@
                         <a href="{{ route('rh.dispositivo-usuarios.exportar-csv', ['dis_id' => $dispositivo->dis_id]) }}" class="btn btn-default btn-block">
                             <i class="fa fa-download"></i> Exportar CSV Control iD
                         </a>
+
+                        <hr>
+
+                        <form method="POST" action="{{ route('rh.dispositivo-usuarios.sincronizar-todos') }}" style="margin-bottom: 10px;">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="dis_id" value="{{ $dispositivo->dis_id }}">
+
+                            <div class="form-group">
+                                <label>Sincronizar usuários ativos do Harpia em</label>
+                                <select name="dispositivos_destino[]" class="form-control" multiple>
+                                    @php($destinosSincronizacao = old('dispositivos_destino', [$dispositivo->dis_id]))
+                                    @foreach($dispositivos as $dispositivoId => $dispositivoNome)
+                                        <option value="{{ $dispositivoId }}" {{ in_array((string) $dispositivoId, array_map('strval', (array) $destinosSincronizacao), true) ? 'selected' : '' }}>
+                                            {{ $dispositivoNome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="help-block">A ação replica os colaboradores ativos do Harpia nos aparelhos selecionados.</p>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="sincronizar_todos_dispositivos" value="1" {{ old('sincronizar_todos_dispositivos') ? 'checked' : '' }}>
+                                    Usar todos os aparelhos ativos
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-success btn-block" onclick="return confirm('Tem certeza que deseja sincronizar os usuários ativos do Harpia para os aparelhos selecionados?')">
+                                <i class="fa fa-exchange"></i> Sincronizar usuários entre aparelhos
+                            </button>
+                        </form>
 
                         <a href="{{ route('rh.vincular-colaboradores.index', ['dis_id' => $dispositivo->dis_id]) }}" class="btn btn-warning btn-block">
                             <i class="fa fa-link"></i> Abrir tela de vinculação

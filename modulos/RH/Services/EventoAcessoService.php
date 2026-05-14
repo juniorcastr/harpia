@@ -118,6 +118,62 @@ class EventoAcessoService
         ]);
     }
 
+    public function reprocessarEventoComFalha(EventoAcesso $evento): bool
+    {
+        if ($evento->eva_status !== 'erro' || !$evento->eva_dis_id) {
+            return false;
+        }
+
+        $observacao = json_decode((string) $evento->eva_observacao, true);
+
+        if (!is_array($observacao)) {
+            return false;
+        }
+
+        $eventCode = (int) ($observacao['event_code'] ?? -1);
+
+        if ($eventCode === 12) {
+            return false;
+        }
+
+        $userId = (string) ($observacao['user_id'] ?? '');
+
+        if ($userId === '') {
+            $userId = $evento->eva_col_id ? '' : (string) $evento->eva_matricula;
+        }
+
+        if ($userId === '') {
+            return false;
+        }
+
+        $colaborador = $this->matchingService->resolver($userId, (int) $evento->eva_dis_id);
+
+        if (!$colaborador) {
+            $evento->fill([
+                'eva_status_mensagem' => 'Usuário ainda não vinculado no Harpia.',
+            ])->save();
+
+            return false;
+        }
+
+        $matricula = $this->matchingService->resolverMatricula($userId, (int) $evento->eva_dis_id)
+            ?: $evento->eva_matricula;
+        $mensagem = $this->descricaoEvento($eventCode);
+
+        if ($evento->eva_tipo === 'entrada' && $this->possuiEntradaAbertaNoDia($colaborador->col_id, Carbon::parse($evento->eva_data_hora), $evento->eva_id)) {
+            $mensagem = 'Entrada reprocessada com outra entrada aberta no mesmo dia.';
+        }
+
+        $evento->fill([
+            'eva_col_id' => $colaborador->col_id,
+            'eva_matricula' => $matricula,
+            'eva_status' => 'processado',
+            'eva_status_mensagem' => $mensagem,
+        ])->save();
+
+        return true;
+    }
+
     private function resolverDataHora(mixed $valor): Carbon
     {
         if (is_numeric($valor)) {
@@ -148,6 +204,9 @@ class EventoAcessoService
         $observacao = [
             'event_code' => $eventCode,
             'event_description' => $this->descricaoEvento($eventCode),
+            'user_id' => $evento['user_id'] ?? null,
+            'device_id' => $evento['device_id'] ?? null,
+            'time' => $evento['time'] ?? null,
         ];
 
         foreach (['id', 'identifier_id', 'portal_id', 'identification_rule_id', 'card_value', 'log_type_id'] as $campo) {
@@ -159,7 +218,7 @@ class EventoAcessoService
         return json_encode($observacao, JSON_UNESCAPED_UNICODE);
     }
 
-    private function possuiEntradaAbertaNoDia(int $colaboradorId, Carbon $dataHora): bool
+    private function possuiEntradaAbertaNoDia(int $colaboradorId, Carbon $dataHora, ?int $ignorarEventoId = null): bool
     {
         $inicioDoDia = $dataHora->copy()->startOfDay()->toDateTimeString();
         $fimDoDia = $dataHora->copy()->endOfDay()->toDateTimeString();
@@ -168,6 +227,9 @@ class EventoAcessoService
             ->where('eva_tipo', 'entrada')
             ->where('eva_status', 'processado')
             ->whereBetween('eva_data_hora', [$inicioDoDia, $fimDoDia])
+            ->when($ignorarEventoId, function ($query) use ($ignorarEventoId) {
+                $query->where('eva_id', '<>', $ignorarEventoId);
+            })
             ->orderByDesc('eva_data_hora')
             ->first();
 
@@ -179,6 +241,9 @@ class EventoAcessoService
             ->where('eva_tipo', 'saida')
             ->where('eva_status', 'processado')
             ->whereBetween('eva_data_hora', [$inicioDoDia, $fimDoDia])
+            ->when($ignorarEventoId, function ($query) use ($ignorarEventoId) {
+                $query->where('eva_id', '<>', $ignorarEventoId);
+            })
             ->orderByDesc('eva_data_hora')
             ->first();
 

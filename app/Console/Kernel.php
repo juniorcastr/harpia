@@ -16,8 +16,10 @@ class Kernel extends ConsoleKernel
         Commands\ColetarEventosControlId::class,
         // Commands\Inspire::class,
         Commands\ExportarUsuariosDispositivo::class,
+        Commands\LimparEventosAntigos::class,
         Commands\ModulosMigrate::class,
         Commands\ModulosSeed::class,
+        Commands\ReprocessarEventosFalha::class,
         Commands\SincronizarMapeamentoDispositivo::class,
     ];
 

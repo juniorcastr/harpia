@@ -92,7 +92,6 @@ class ControlIdApiClientTest extends \PHPUnit\Framework\TestCase
             'registration' => '15',
             'name' => 'Maria Silva',
             'password' => '',
-            'user_type_id' => 1,
         ]);
 
         $this->assertCount(2, $history);
@@ -102,10 +101,11 @@ class ControlIdApiClientTest extends \PHPUnit\Framework\TestCase
             json_encode([
                 'object' => 'users',
                 'values' => [
-                    'registration' => '15',
-                    'name' => 'Maria Silva',
-                    'password' => '',
-                    'user_type_id' => 1,
+                    [
+                        'registration' => '15',
+                        'name' => 'Maria Silva',
+                        'password' => '',
+                    ],
                 ],
             ]),
             (string) $history[1]['request']->getBody()
@@ -137,5 +137,60 @@ class ControlIdApiClientTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('user_id=99', $history[1]['request']->getUri()->getQuery());
         $this->assertStringContainsString('session=img321', $history[1]['request']->getUri()->getQuery());
         $this->assertSame('raw-image-content', $response);
+    }
+
+    public function testSetUserImageUsesBinaryPayloadAndQueryString(): void
+    {
+        $history = [];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['session' => 'img654'])),
+            new Response(200, [], json_encode(['success' => true, 'user_id' => 99])),
+        ]);
+        $handler = HandlerStack::create($mock);
+        $handler->push(\GuzzleHttp\Middleware::history($history));
+
+        $client = new Client(['handler' => $handler]);
+        $apiClient = new ControlIdApiClient($client);
+
+        $dispositivo = new DispositivoAcesso();
+        $dispositivo->dis_ip = '192.168.0.10';
+
+        $response = $apiClient->setUserImage($dispositivo, 99, 'jpeg-binary', 1715600000, true);
+
+        $this->assertCount(2, $history);
+        $this->assertSame('/user_set_image.fcgi', $history[1]['request']->getUri()->getPath());
+        $this->assertStringContainsString('user_id=99', $history[1]['request']->getUri()->getQuery());
+        $this->assertStringContainsString('timestamp=1715600000', $history[1]['request']->getUri()->getQuery());
+        $this->assertStringContainsString('match=1', $history[1]['request']->getUri()->getQuery());
+        $this->assertStringContainsString('session=img654', $history[1]['request']->getUri()->getQuery());
+        $this->assertSame('application/octet-stream', $history[1]['request']->getHeaderLine('Content-Type'));
+        $this->assertSame('jpeg-binary', (string) $history[1]['request']->getBody());
+        $this->assertSame(['success' => true, 'user_id' => 99], $response);
+    }
+
+    public function testTestUserImageUsesBinaryPayload(): void
+    {
+        $history = [];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['session' => 'img987'])),
+            new Response(200, [], json_encode(['success' => true])),
+        ]);
+        $handler = HandlerStack::create($mock);
+        $handler->push(\GuzzleHttp\Middleware::history($history));
+
+        $client = new Client(['handler' => $handler]);
+        $apiClient = new ControlIdApiClient($client);
+
+        $dispositivo = new DispositivoAcesso();
+        $dispositivo->dis_ip = '192.168.0.10';
+
+        $response = $apiClient->testUserImage($dispositivo, 'png-binary');
+
+        $this->assertCount(2, $history);
+        $this->assertSame('/user_test_image.fcgi', $history[1]['request']->getUri()->getPath());
+        $this->assertStringContainsString('session=img987', $history[1]['request']->getUri()->getQuery());
+        $this->assertSame('application/octet-stream', $history[1]['request']->getHeaderLine('Content-Type'));
+        $this->assertSame('png-binary', (string) $history[1]['request']->getBody());
+        $this->assertSame(['success' => true], $response);
     }
 }

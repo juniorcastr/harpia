@@ -144,5 +144,73 @@ class MenuRHSeeder extends Seeder
             'mit_rota' => 'rh.horastrabalhadas.index',
             'mit_ordem' => 8
         ]);
+
+        // Categoria controle de acesso
+        $rh = MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Controle de Acesso',
+            'mit_icone' => 'fa fa-id-card',
+            'mit_ordem' => 2
+        ]);
+
+        // Item registros de ponto
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Registros de Ponto',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-clock-o',
+            'mit_rota' => 'rh.registros-ponto.index',
+            'mit_ordem' => 1
+        ]);
+
+        // Item eventos de acesso
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Eventos de Acesso',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-exchange',
+            'mit_rota' => 'rh.eventos-acesso.index',
+            'mit_ordem' => 2
+        ]);
+
+        // Item dispositivos de acesso
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Dispositivos de Acesso',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-desktop',
+            'mit_rota' => 'rh.dispositivos-acesso.index',
+            'mit_ordem' => 3
+        ]);
+
+        // Item usuários do dispositivo
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Usuários do Dispositivo',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-users',
+            'mit_rota' => 'rh.dispositivos-usuarios.index',
+            'mit_ordem' => 4
+        ]);
+
+        // Item vincular colaboradores
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Vincular Colaboradores',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-link',
+            'mit_rota' => 'rh.vincular-colaboradores.index',
+            'mit_ordem' => 5
+        ]);
+
+        // Item teste de dispositivos
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Teste de Dispositivos',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-stethoscope',
+            'mit_rota' => 'rh.teste-dispositivo.index',
+            'mit_ordem' => 6
+        ]);
     }
 }

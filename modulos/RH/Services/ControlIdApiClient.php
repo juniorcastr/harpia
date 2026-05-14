@@ -52,7 +52,7 @@ class ControlIdApiClient
     {
         return $this->post($dispositivo, '/create_objects.fcgi', [
             'object' => 'users',
-            'values' => $userData,
+            'values' => [$userData],
         ]);
     }
 
@@ -60,9 +60,9 @@ class ControlIdApiClient
     {
         return $this->post($dispositivo, '/modify_objects.fcgi', [
             'object' => 'users',
-            'values' => array_merge($userData, [
+            'values' => [array_merge($userData, [
                 'id' => $userId,
-            ]),
+            ])],
         ]);
     }
 
@@ -70,17 +70,24 @@ class ControlIdApiClient
     {
         return $this->post($dispositivo, '/destroy_objects.fcgi', [
             'object' => 'users',
-            'values' => [
+            'values' => [[
                 'id' => $userId,
-            ],
+            ]],
         ]);
     }
 
-    public function setUserImage(DispositivoAcesso $dispositivo, int $userId, string $imageBase64): array
+    public function setUserImage(
+        DispositivoAcesso $dispositivo,
+        int $userId,
+        string $imageBinary,
+        ?int $timestamp = null,
+        bool $match = false
+    ): array
     {
-        return $this->post($dispositivo, '/user_set_image.fcgi', [
+        return $this->postBinario($dispositivo, '/user_set_image.fcgi', $imageBinary, [
             'user_id' => $userId,
-            'image' => $imageBase64,
+            'timestamp' => $timestamp ?? time(),
+            'match' => $match ? 1 : 0,
         ]);
     }
 
@@ -98,11 +105,9 @@ class ControlIdApiClient
         ]);
     }
 
-    public function testUserImage(DispositivoAcesso $dispositivo, string $imageBase64): array
+    public function testUserImage(DispositivoAcesso $dispositivo, string $imageBinary): array
     {
-        return $this->post($dispositivo, '/user_test_image.fcgi', [
-            'image' => $imageBase64,
-        ]);
+        return $this->postBinario($dispositivo, '/user_test_image.fcgi', $imageBinary);
     }
 
     public function setConfiguration(DispositivoAcesso $dispositivo, array $config): array
@@ -155,6 +160,26 @@ class ControlIdApiClient
         $session = $this->obterSessao($dispositivo);
 
         return $this->postSemSessao($dispositivo, $endpoint . '?session=' . urlencode($session), $payload);
+    }
+
+    private function postBinario(
+        DispositivoAcesso $dispositivo,
+        string $endpoint,
+        string $conteudo,
+        array $query = []
+    ): array {
+        $session = $this->obterSessao($dispositivo);
+        $query = array_merge($query, ['session' => $session]);
+
+        $response = $this->http->request('POST', $this->baseUrl($dispositivo) . $endpoint, [
+            'query' => $query,
+            'headers' => [
+                'Content-Type' => 'application/octet-stream',
+            ],
+            'body' => $conteudo,
+        ]);
+
+        return $this->decodificarResposta($response->getStatusCode(), (string) $response->getBody());
     }
 
     private function get(DispositivoAcesso $dispositivo, string $endpoint, array $query = []): string
@@ -226,8 +251,11 @@ class ControlIdApiClient
             'json' => empty($payload) ? (object) [] : $payload,
         ]);
 
-        $body = (string) $response->getBody();
+        return $this->decodificarResposta($response->getStatusCode(), (string) $response->getBody());
+    }
 
+    private function decodificarResposta(int $statusCode, string $body): array
+    {
         try {
             $decoded = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
 
@@ -237,12 +265,12 @@ class ControlIdApiClient
 
             return [
                 'value' => $decoded,
-                'status_code' => $response->getStatusCode(),
+                'status_code' => $statusCode,
             ];
         } catch (JsonException $exception) {
             return [
                 'raw' => $body,
-                'status_code' => $response->getStatusCode(),
+                'status_code' => $statusCode,
             ];
         }
     }

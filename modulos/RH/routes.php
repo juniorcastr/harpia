@@ -41,7 +41,33 @@ Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
         Route::post('/remover-foto/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postRemoverFoto')->name('rh.dispositivo-usuarios.remover-foto');
         Route::post('/delete', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postDelete')->name('rh.dispositivo-usuarios.delete');
         Route::post('/sincronizar', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postSincronizar')->name('rh.dispositivo-usuarios.sincronizar');
+        Route::post('/sincronizar-todos', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postSincronizarTodos')->name('rh.dispositivo-usuarios.sincronizar-todos');
         Route::get('/exportar-csv/{dis_id?}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getExportarCsv')->name('rh.dispositivo-usuarios.exportar-csv');
+    });
+
+    Route::group(['prefix' => 'dispositivos-usuarios'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getIndex')->name('rh.dispositivos-usuarios.index');
+        Route::post('/create', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postCreate')->name('rh.dispositivos-usuarios.create');
+        Route::get('/edit/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getEdit')->name('rh.dispositivos-usuarios.edit');
+        Route::put('/edit/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@putEdit')->name('rh.dispositivos-usuarios.edit');
+        Route::post('/atualizar-foto/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postAtualizarFoto')->name('rh.dispositivos-usuarios.atualizar-foto');
+        Route::post('/remover-foto/{id}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postRemoverFoto')->name('rh.dispositivos-usuarios.remover-foto');
+        Route::post('/delete', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postDelete')->name('rh.dispositivos-usuarios.delete');
+        Route::post('/sincronizar', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postSincronizar')->name('rh.dispositivos-usuarios.sincronizar');
+        Route::post('/sincronizar-todos', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@postSincronizarTodos')->name('rh.dispositivos-usuarios.sincronizar-todos');
+        Route::get('/exportar-csv/{dis_id?}', '\Modulos\RH\Http\Controllers\DispositivoUsuariosController@getExportarCsv')->name('rh.dispositivos-usuarios.exportar-csv');
+    });
+
+    Route::group(['prefix' => 'dispositivos-acesso'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@getIndex')->name('rh.dispositivos-acesso.index');
+        Route::get('/create', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@getCreate')->name('rh.dispositivos-acesso.create');
+        Route::post('/create', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@postCreate')->name('rh.dispositivos-acesso.create');
+        Route::get('/edit/{id}', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@getEdit')->name('rh.dispositivos-acesso.edit');
+        Route::put('/edit/{id}', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@putEdit')->name('rh.dispositivos-acesso.edit');
+        Route::post('/delete', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@postDelete')->name('rh.dispositivos-acesso.delete');
+        Route::post('/{id}/regenerar-token', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@postRegenerarToken')->name('rh.dispositivos-acesso.regenerar-token');
+        Route::post('/{id}/ping', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@postPing')->name('rh.dispositivos-acesso.ping');
+        Route::post('/{id}/sincronizar-mapeamento', '\Modulos\RH\Http\Controllers\DispositivoAcessoController@postSincronizarMapeamento')->name('rh.dispositivos-acesso.sincronizar-mapeamento');
     });
 
     Route::group(['prefix' => 'vincular-colaboradores'], function () {
@@ -50,6 +76,18 @@ Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
         Route::post('/desvincular', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@postDesvincular')->name('rh.vincular-colaboradores.desvincular');
         Route::post('/sincronizar', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@postSincronizar')->name('rh.vincular-colaboradores.sincronizar');
         Route::get('/exportar-csv/{dis_id?}', '\Modulos\RH\Http\Controllers\VincularColaboradoresController@getExportarCsv')->name('rh.vincular-colaboradores.exportar-csv');
+    });
+
+    Route::group(['prefix' => 'registros-ponto'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\RegistrosPontoController@getIndex')->name('rh.registros-ponto.index');
+        Route::get('/detalhes/{col_id}/{data}', '\Modulos\RH\Http\Controllers\RegistrosPontoController@getDetalhes')->name('rh.registros-ponto.detalhes');
+        Route::get('/export', '\Modulos\RH\Http\Controllers\RegistrosPontoController@getExport')->name('rh.registros-ponto.export');
+    });
+
+    Route::group(['prefix' => 'eventos-acesso'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\EventoAcessoController@getIndex')->name('rh.eventos-acesso.index');
+        Route::get('/show/{id}', '\Modulos\RH\Http\Controllers\EventoAcessoController@getShow')->name('rh.eventos-acesso.show');
+        Route::post('/reprocessar/{id}', '\Modulos\RH\Http\Controllers\EventoAcessoController@postReprocessar')->name('rh.eventos-acesso.reprocessar');
     });
 
     Route::group(['prefix' => 'areasconhecimentos'], function () {

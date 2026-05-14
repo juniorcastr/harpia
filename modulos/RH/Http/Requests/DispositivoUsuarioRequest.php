@@ -18,18 +18,21 @@ class DispositivoUsuarioRequest extends BaseRequest
             'nome' => 'nullable|string|min:3|max:100',
             'registration' => 'nullable|string|max:50',
             'col_id' => 'nullable|integer|exists:reh_colaboradores,col_id',
-            'foto' => 'nullable|image|max:4096',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'dispositivos_destino' => 'nullable|array',
+            'dispositivos_destino.*' => 'integer|exists:reh_dispositivos_acesso,dis_id',
+            'cadastrar_em_todos_dispositivos' => 'nullable|boolean',
         ];
 
         $route = $this->route();
         $routeName = $route ? $route->getName() : null;
 
-        if ($routeName === 'rh.dispositivo-usuarios.create') {
+        if (in_array($routeName, ['rh.dispositivo-usuarios.create', 'rh.dispositivos-usuarios.create'], true)) {
             $rules['col_id'] = 'required|integer|exists:reh_colaboradores,col_id';
         }
 
-        if ($routeName === 'rh.dispositivo-usuarios.atualizar-foto') {
-            $rules['foto'] = 'required|image|max:4096';
+        if (in_array($routeName, ['rh.dispositivo-usuarios.atualizar-foto', 'rh.dispositivos-usuarios.atualizar-foto'], true)) {
+            $rules['foto'] = 'required|image|mimes:jpg,jpeg,png|max:2048';
         }
 
         return $rules;
