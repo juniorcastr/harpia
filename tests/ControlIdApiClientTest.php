@@ -113,6 +113,78 @@ class ControlIdApiClientTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(['ids' => [12]], $response);
     }
 
+    public function testCreateUserGroupUsesExpectedEndpointAndPayload(): void
+    {
+        $history = [];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['session' => 'grp123'])),
+            new Response(200, [], json_encode(['changes' => 1])),
+        ]);
+        $handler = HandlerStack::create($mock);
+        $handler->push(\GuzzleHttp\Middleware::history($history));
+
+        $client = new Client(['handler' => $handler]);
+        $apiClient = new ControlIdApiClient($client);
+
+        $dispositivo = new DispositivoAcesso();
+        $dispositivo->dis_ip = '192.168.0.10';
+
+        $response = $apiClient->createUserGroup($dispositivo, 12, 1);
+
+        $this->assertCount(2, $history);
+        $this->assertSame('/create_objects.fcgi', $history[1]['request']->getUri()->getPath());
+        $this->assertSame('session=grp123', $history[1]['request']->getUri()->getQuery());
+        $this->assertJsonStringEqualsJsonString(
+            json_encode([
+                'object' => 'user_groups',
+                'values' => [
+                    [
+                        'user_id' => 12,
+                        'group_id' => 1,
+                    ],
+                ],
+            ]),
+            (string) $history[1]['request']->getBody()
+        );
+        $this->assertSame(['changes' => 1], $response);
+    }
+
+    public function testConfigurarMonitorUsesNotificationsPathByDefault(): void
+    {
+        $history = [];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['session' => 'mon123'])),
+            new Response(200, [], json_encode(['success' => true])),
+        ]);
+        $handler = HandlerStack::create($mock);
+        $handler->push(\GuzzleHttp\Middleware::history($history));
+
+        $client = new Client(['handler' => $handler]);
+        $apiClient = new ControlIdApiClient($client);
+
+        $dispositivo = new DispositivoAcesso();
+        $dispositivo->dis_ip = '192.168.0.10';
+
+        $response = $apiClient->configurarMonitor($dispositivo, 'harpia.exemplo.gov.br', 443);
+
+        $this->assertCount(2, $history);
+        $this->assertSame('/set_configuration.fcgi', $history[1]['request']->getUri()->getPath());
+        $this->assertJsonStringEqualsJsonString(
+            json_encode([
+                'monitor' => [
+                    'hostname' => 'harpia.exemplo.gov.br',
+                    'port' => '443',
+                    'path' => 'api/rh/monitor/notifications',
+                    'request_timeout' => '5000',
+                    'alive_interval' => '30000',
+                    'inform_access_event_id' => '1',
+                ],
+            ]),
+            (string) $history[1]['request']->getBody()
+        );
+        $this->assertSame(['success' => true], $response);
+    }
+
     public function testGetUserImageUsesGetRequestWithSession(): void
     {
         $history = [];

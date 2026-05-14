@@ -212,5 +212,40 @@ class MenuRHSeeder extends Seeder
             'mit_rota' => 'rh.teste-dispositivo.index',
             'mit_ordem' => 6
         ]);
+
+        // Categoria ponto remoto
+        $rh = MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Ponto Remoto',
+            'mit_icone' => 'fa fa-laptop',
+            'mit_ordem' => 3
+        ]);
+
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Meus Registros',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-clock-o',
+            'mit_rota' => 'rh.ponto-remoto.index',
+            'mit_ordem' => 1
+        ]);
+
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Aprovações Pendentes',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-check-square-o',
+            'mit_rota' => 'rh.aprovacoes-ponto.index',
+            'mit_ordem' => 2
+        ]);
+
+        MenuItem::create([
+            'mit_mod_id' => $modulo->mod_id,
+            'mit_nome' => 'Configurações do Ponto',
+            'mit_item_pai' => $rh->mit_id,
+            'mit_icone' => 'fa fa-cogs',
+            'mit_rota' => 'rh.configuracoes-ponto.index',
+            'mit_ordem' => 3
+        ]);
     }
 }

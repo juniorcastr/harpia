@@ -56,6 +56,17 @@ class ControlIdApiClient
         ]);
     }
 
+    public function createUserGroup(DispositivoAcesso $dispositivo, int $userId, int $groupId): array
+    {
+        return $this->post($dispositivo, '/create_objects.fcgi', [
+            'object' => 'user_groups',
+            'values' => [[
+                'user_id' => $userId,
+                'group_id' => $groupId,
+            ]],
+        ]);
+    }
+
     public function modifyUser(DispositivoAcesso $dispositivo, int $userId, array $userData): array
     {
         return $this->post($dispositivo, '/modify_objects.fcgi', [
@@ -119,7 +130,7 @@ class ControlIdApiClient
         DispositivoAcesso $dispositivo,
         string $hostname,
         int $port = 80,
-        string $path = 'api/rh/monitor'
+        string $path = 'api/rh/monitor/notifications'
     ): array {
         return $this->setConfiguration($dispositivo, [
             'monitor' => [

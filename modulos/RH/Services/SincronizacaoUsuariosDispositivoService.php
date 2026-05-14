@@ -5,6 +5,7 @@ namespace Modulos\RH\Services;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modulos\RH\Models\DispositivoAcesso;
 use Modulos\RH\Models\MapeamentoDispositivo;
@@ -131,6 +132,11 @@ class SincronizacaoUsuariosDispositivoService
         ]);
 
         $userId = $this->resolverUserIdNaResposta($resposta);
+
+        if ($userId !== null) {
+            $this->garantirGrupoPadraoDoUsuario($dispositivo, $userId);
+        }
+
         $sincronizacao = $this->sincronizar($dispositivo);
         $usuario = $this->buscarUsuarioSincronizado($sincronizacao['usuarios'], $userId, $registration);
 
@@ -244,6 +250,8 @@ class SincronizacaoUsuariosDispositivoService
             $this->apiClient->modifyUser($dispositivo, (int) $userId, $payload);
         }
 
+        $this->garantirGrupoPadraoDoUsuario($dispositivo, $userId);
+
         if ($foto) {
             $respostaFoto = $this->apiClient->setUserImage(
                 $dispositivo,
@@ -356,9 +364,17 @@ class SincronizacaoUsuariosDispositivoService
 
     public function extrairUsuarios(array $response): array
     {
-        foreach (['users', 'values', 'objects'] as $key) {
+        foreach (['users', 'groups', 'user_groups', 'values', 'objects'] as $key) {
             if (isset($response[$key]) && is_array($response[$key])) {
                 return array_values(array_filter($response[$key], 'is_array'));
+            }
+        }
+
+        if (count($response) === 1) {
+            $primeiroValor = reset($response);
+
+            if (is_array($primeiroValor)) {
+                return array_values(array_filter($primeiroValor, 'is_array'));
             }
         }
 
@@ -546,11 +562,18 @@ class SincronizacaoUsuariosDispositivoService
             $usuarioExistente = $this->localizarUsuarioDoColaborador($usuarios, (int) $colaborador->col_id);
 
             if (!$usuarioExistente) {
-                $this->apiClient->createUser($dispositivo, [
+                $resposta = $this->apiClient->createUser($dispositivo, [
                     'registration' => $dadosDesejados['registration'],
                     'name' => $dadosDesejados['nome'],
                     'password' => '',
                 ]);
+
+                $userId = $this->resolverUserIdNaResposta($resposta);
+
+                if ($userId !== null) {
+                    $this->garantirGrupoPadraoDoUsuario($dispositivo, $userId);
+                }
+
                 $resultado['criados']++;
                 continue;
             }
@@ -609,8 +632,70 @@ class SincronizacaoUsuariosDispositivoService
             $this->apiClient->modifyUser($dispositivo, (int) $userId, $payload);
         }
 
+        $this->garantirGrupoPadraoDoUsuario($dispositivo, $userId);
+
         if (!empty($dados['col_id'])) {
             $this->vincularUsuario($dispositivo, $userId, (int) $dados['col_id']);
         }
+    }
+
+    private function garantirGrupoPadraoDoUsuario(DispositivoAcesso $dispositivo, string $userId): void
+    {
+        $groupId = $this->resolverGrupoPadraoId($dispositivo);
+
+        if ($groupId === null) {
+            Log::channel('ponto')->warning('Nenhum grupo padrão foi encontrado no dispositivo para vincular o usuário criado.', [
+                'dispositivo_id' => $dispositivo->dis_id,
+                'user_id' => $userId,
+            ]);
+
+            return;
+        }
+
+        $vinculos = $this->extrairUsuarios($this->apiClient->loadObjects($dispositivo, 'user_groups', [
+            'where' => [
+                'user_groups' => [
+                    'user_id' => (int) $userId,
+                ],
+            ],
+        ]));
+
+        foreach ($vinculos as $vinculo) {
+            if ((int) ($vinculo['group_id'] ?? 0) === $groupId) {
+                return;
+            }
+        }
+
+        $this->apiClient->createUserGroup($dispositivo, (int) $userId, $groupId);
+    }
+
+    private function resolverGrupoPadraoId(DispositivoAcesso $dispositivo): ?int
+    {
+        $grupos = $this->extrairUsuarios($this->apiClient->loadObjects($dispositivo, 'groups', [
+            'fields' => ['id', 'name'],
+            'order' => ['id', 'ascending'],
+        ]));
+
+        if (empty($grupos)) {
+            return null;
+        }
+
+        $nomesPadrao = ['padrão', 'padrao', 'standard'];
+
+        foreach ($grupos as $grupo) {
+            $nome = mb_strtolower(trim((string) ($grupo['name'] ?? '')));
+
+            if (in_array($nome, $nomesPadrao, true)) {
+                return (int) $grupo['id'];
+            }
+        }
+
+        foreach ($grupos as $grupo) {
+            if ((int) ($grupo['id'] ?? 0) === 1) {
+                return 1;
+            }
+        }
+
+        return isset($grupos[0]['id']) ? (int) $grupos[0]['id'] : null;
     }
 }

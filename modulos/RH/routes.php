@@ -21,6 +21,11 @@ Route::group(['prefix' => 'api/rh/monitor', 'middleware' => ['auth.dispositivo']
     Route::post('/notifications/secbox', '\Modulos\RH\Http\Controllers\MonitorController@receberSecbox')->name('rh.api.monitor.secbox');
 });
 
+Route::group(['prefix' => 'api/rh/ponto-remoto', 'middleware' => ['throttle:10,1']], function () {
+    Route::post('/entrada', '\Modulos\RH\Http\Controllers\PontoRemotoApiController@postEntrada')->name('rh.api.ponto-remoto.entrada');
+    Route::post('/saida', '\Modulos\RH\Http\Controllers\PontoRemotoApiController@postSaida')->name('rh.api.ponto-remoto.saida');
+});
+
 Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
     Route::get('/', '\Modulos\RH\Http\Controllers\IndexController@getIndex')->name('rh.index.index');
 
@@ -88,6 +93,24 @@ Route::group(['prefix' => 'rh', 'middleware' => ['auth']], function () {
         Route::get('/', '\Modulos\RH\Http\Controllers\EventoAcessoController@getIndex')->name('rh.eventos-acesso.index');
         Route::get('/show/{id}', '\Modulos\RH\Http\Controllers\EventoAcessoController@getShow')->name('rh.eventos-acesso.show');
         Route::post('/reprocessar/{id}', '\Modulos\RH\Http\Controllers\EventoAcessoController@postReprocessar')->name('rh.eventos-acesso.reprocessar');
+    });
+
+    Route::group(['prefix' => 'ponto-remoto'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\PontoRemotoController@getIndex')->name('rh.ponto-remoto.index');
+        Route::post('/entrada', '\Modulos\RH\Http\Controllers\PontoRemotoController@postEntrada')->name('rh.ponto-remoto.entrada');
+        Route::post('/saida', '\Modulos\RH\Http\Controllers\PontoRemotoController@postSaida')->name('rh.ponto-remoto.saida');
+    });
+
+    Route::group(['prefix' => 'aprovacoes-ponto'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\AprovacaoPontoController@getIndex')->name('rh.aprovacoes-ponto.index');
+        Route::get('/show/{id}', '\Modulos\RH\Http\Controllers\AprovacaoPontoController@getShow')->name('rh.aprovacoes-ponto.show');
+        Route::post('/aprovar/{id}', '\Modulos\RH\Http\Controllers\AprovacaoPontoController@postAprovar')->name('rh.aprovacoes-ponto.aprovar');
+        Route::post('/reprovar/{id}', '\Modulos\RH\Http\Controllers\AprovacaoPontoController@postReprovar')->name('rh.aprovacoes-ponto.reprovar');
+    });
+
+    Route::group(['prefix' => 'configuracoes-ponto'], function () {
+        Route::get('/', '\Modulos\RH\Http\Controllers\ConfiguracaoPontoController@getIndex')->name('rh.configuracoes-ponto.index');
+        Route::put('/edit', '\Modulos\RH\Http\Controllers\ConfiguracaoPontoController@putEdit')->name('rh.configuracoes-ponto.edit');
     });
 
     Route::group(['prefix' => 'areasconhecimentos'], function () {

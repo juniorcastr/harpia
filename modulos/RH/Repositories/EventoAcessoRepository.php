@@ -27,8 +27,12 @@ class EventoAcessoRepository extends BaseRepository
                 'dis.dis_nome',
             ]);
 
-        $inicio = !empty($filtros['data_inicio']) ? Carbon::parse($filtros['data_inicio'])->startOfDay()->toDateTimeString() : Carbon::now()->startOfMonth()->toDateTimeString();
-        $fim = !empty($filtros['data_fim']) ? Carbon::parse($filtros['data_fim'])->endOfDay()->toDateTimeString() : Carbon::now()->endOfMonth()->toDateTimeString();
+        $inicio = !empty($filtros['data_inicio'])
+            ? $this->normalizarDataFiltro((string) $filtros['data_inicio'])->startOfDay()->toDateTimeString()
+            : Carbon::now()->startOfMonth()->toDateTimeString();
+        $fim = !empty($filtros['data_fim'])
+            ? $this->normalizarDataFiltro((string) $filtros['data_fim'])->endOfDay()->toDateTimeString()
+            : Carbon::now()->endOfMonth()->toDateTimeString();
 
         $query->whereBetween('eva.eva_data_hora', [$inicio, $fim]);
 
@@ -68,6 +72,53 @@ class EventoAcessoRepository extends BaseRepository
             ->find($eventoId);
     }
 
+    public function listarDoColaborador(int $colaboradorId, int $limite = 30)
+    {
+        return $this->model->newQuery()
+            ->with(['dispositivo', 'aprovacoes.aprovador.pessoa'])
+            ->where('eva_col_id', $colaboradorId)
+            ->orderByDesc('eva_data_hora')
+            ->limit($limite)
+            ->get();
+    }
+
+    public function buscarEfetivosDoDia(int $colaboradorId, Carbon $data)
+    {
+        return $this->model->newQuery()
+            ->where('eva_col_id', $colaboradorId)
+            ->whereBetween('eva_data_hora', [
+                $data->copy()->startOfDay()->toDateTimeString(),
+                $data->copy()->endOfDay()->toDateTimeString(),
+            ])
+            ->whereIn('eva_status', ['processado', 'pendente', 'aprovado'])
+            ->orderBy('eva_data_hora')
+            ->get();
+    }
+
+    public function buscarPendenteHomeOffice(int $eventoId): ?EventoAcesso
+    {
+        return $this->model->newQuery()
+            ->with(['colaborador.pessoa', 'dispositivo', 'aprovacoes.aprovador.pessoa'])
+            ->where('eva_id', $eventoId)
+            ->where('eva_origem', 'home_office')
+            ->first();
+    }
+
+    public function listarPendenciasParaColaboradores(array $colaboradorIds)
+    {
+        if (empty($colaboradorIds)) {
+            return collect();
+        }
+
+        return $this->model->newQuery()
+            ->with(['colaborador.pessoa', 'dispositivo'])
+            ->whereIn('eva_col_id', $colaboradorIds)
+            ->where('eva_origem', 'home_office')
+            ->where('eva_status', 'pendente')
+            ->orderBy('eva_data_hora')
+            ->get();
+    }
+
     public function limparAntigos(array $status, Carbon $limite): int
     {
         return $this->model->newQuery()
@@ -83,5 +134,19 @@ class EventoAcessoRepository extends BaseRepository
             ->orderBy('eva_data_hora')
             ->limit($limit)
             ->get();
+    }
+
+    private function normalizarDataFiltro(string $valor): Carbon
+    {
+        $valor = trim($valor);
+
+        foreach (['d/m/Y H:i:s', 'd/m/Y', 'Y-m-d H:i:s', 'Y-m-d'] as $formato) {
+            try {
+                return Carbon::createFromFormat($formato, $valor);
+            } catch (\Throwable $exception) {
+            }
+        }
+
+        return Carbon::parse($valor);
     }
 }

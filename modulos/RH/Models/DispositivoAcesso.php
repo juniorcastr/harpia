@@ -18,6 +18,8 @@ class DispositivoAcesso extends BaseModel
         'dis_modelo',
         'dis_token_api',
         'dis_status',
+        'dis_ultimo_access_log_id',
+        'dis_ultima_coleta_em',
         'dis_observacao',
     ];
 

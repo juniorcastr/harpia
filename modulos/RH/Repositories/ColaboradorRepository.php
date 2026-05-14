@@ -178,6 +178,28 @@ class ColaboradorRepository extends BaseRepository
             ->first();
     }
 
+    public function buscarAtivoPorPessoaId(int $pessoaId): ?Colaborador
+    {
+        return $this->model
+            ->with(['pessoa', 'funcoes'])
+            ->where('col_status', 'ativo')
+            ->where('col_pes_id', $pessoaId)
+            ->first();
+    }
+
+    public function buscarAtivoPorEmail(string $email): ?Colaborador
+    {
+        $email = strtolower(trim($email));
+
+        return $this->model
+            ->with('pessoa')
+            ->join('gra_pessoas', 'gra_pessoas.pes_id', '=', 'reh_colaboradores.col_pes_id')
+            ->where('reh_colaboradores.col_status', 'ativo')
+            ->where('gra_pessoas.pes_email', $email)
+            ->select('reh_colaboradores.*')
+            ->first();
+    }
+
     public function buscarAtivoPorRegistration(?string $registration): ?Colaborador
     {
         $registration = trim((string) $registration);

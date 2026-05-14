@@ -5,19 +5,17 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 use Modulos\RH\Repositories\DispositivoAcessoRepository;
-use Modulos\RH\Services\ControlIdApiClient;
-use Modulos\RH\Services\EventoAcessoService;
+use Modulos\RH\Services\ColetaEventosDispositivoService;
 
 class ColetarEventosControlId extends Command
 {
-    protected $signature = 'ponto:coletar-eventos {dis_id?} {--limit=100}';
+    protected $signature = 'ponto:coletar-eventos {dis_id?} {--limit=}';
 
     protected $description = 'Coleta logs de acesso diretamente do Control iD como fallback ao monitor em tempo real';
 
     public function __construct(
         private DispositivoAcessoRepository $dispositivoRepository,
-        private ControlIdApiClient $apiClient,
-        private EventoAcessoService $eventoAcessoService
+        private ColetaEventosDispositivoService $coletaEventosDispositivoService
     ) {
         parent::__construct();
     }
@@ -25,7 +23,7 @@ class ColetarEventosControlId extends Command
     public function handle()
     {
         $dispositivoId = $this->argument('dis_id');
-        $limit = (int) $this->option('limit');
+        $limit = (int) ($this->option('limit') ?: config('ponto.polling.limit', 500));
         $dispositivos = [];
 
         if ($dispositivoId) {
@@ -37,42 +35,22 @@ class ColetarEventosControlId extends Command
 
             $dispositivos[] = $dispositivo;
         } else {
-            $dispositivos = $this->dispositivoRepository->all()
-                ->where('dis_status', 'ativo')
-                ->values()
-                ->all();
+            $dispositivos = $this->dispositivoRepository->listarAtivos()->all();
         }
 
         foreach ($dispositivos as $dispositivo) {
-            $resposta = $this->apiClient->loadObjects($dispositivo, 'access_logs', [
-                'limit' => $limit,
-            ]);
-
-            $logs = $this->extrairLogs($resposta);
-            $resultado = $this->eventoAcessoService->processarLoteAccessLogs($dispositivo, $logs, [
-                'ip' => $dispositivo->dis_ip,
-                'user_agent' => 'polling-controlid',
-            ]);
+            $resultado = $this->coletaEventosDispositivoService->coletarNovosEventos($dispositivo, $limit);
 
             $this->info(sprintf(
-                '[%s] processado=%d erro=%d duplicado=%d ignorado=%d',
+                '[%s] lidos=%d processado=%d erro=%d duplicado=%d ignorado=%d ultimo_id=%d',
                 $dispositivo->dis_nome,
+                $resultado['lidos'],
                 $resultado['processado'],
                 $resultado['erro'],
                 $resultado['duplicado'],
-                $resultado['ignorado']
+                $resultado['ignorado'],
+                $resultado['ultimo_id_atual']
             ));
         }
-    }
-
-    private function extrairLogs(array $resposta): array
-    {
-        foreach (['access_logs', 'values', 'objects'] as $key) {
-            if (isset($resposta[$key]) && is_array($resposta[$key])) {
-                return array_values(array_filter($resposta[$key], 'is_array'));
-            }
-        }
-
-        return array_values(array_filter($resposta, 'is_array'));
     }
 }

@@ -31,7 +31,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        if (config('ponto.polling.enabled')) {
+            $schedule->command(sprintf(
+                'ponto:coletar-eventos --limit=%d',
+                (int) config('ponto.polling.limit', 500)
+            ))
+                ->cron((string) config('ponto.polling.cron', '*/15 * * * *'))
+                ->withoutOverlapping();
+        }
     }
 }

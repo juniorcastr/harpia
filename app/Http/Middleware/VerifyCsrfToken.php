@@ -13,5 +13,6 @@ class VerifyCsrfToken extends BaseVerifier
      */
     protected $except = [
         'api/rh/monitor/*',
+        'api/rh/ponto-remoto/*',
     ];
 }
